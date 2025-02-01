@@ -26,7 +26,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker-compose build
+          docker build -t post-service-newpost .
           docker tag post-service-newpost:latest ${{ secrets.AWS_ECR_REPOSITORY }}:latest
           docker push ${{ secrets.AWS_ECR_REPOSITORY }}:latest
 
@@ -37,6 +37,13 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
+            sudo yum update -y
+            sudo yum install -y docker
+            sudo service docker start
+            sudo usermod -aG docker ec2-user
+            newgrp docker
+            curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
             export AWS_REGION=${{ secrets.AWS_REGION }}
             docker pull ${{ secrets.AWS_ECR_REPOSITORY }}:latest
             docker-compose down
