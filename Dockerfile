@@ -2,7 +2,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copiar los archivos necesarios
-COPY package.json package-lock.json ./
+COPY package.json ./
 RUN npm install --only=production
 
 # Copiar cada servicio
