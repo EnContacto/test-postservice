@@ -13,8 +13,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set AWS Region
+        run: echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+
       - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws configure set region $AWS_REGION
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPOSITORY }}
 
       - name: Build and Push Docker Image
         run: |
@@ -29,6 +36,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
+            export AWS_REGION=${{ secrets.AWS_REGION }}
             docker pull ${{ secrets.AWS_ECR_REPOSITORY }}:latest
             docker-compose down
             docker-compose up -d
